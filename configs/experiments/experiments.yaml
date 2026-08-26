@@ -13,7 +13,7 @@ matrix:
     prompts:
       - zero-shot
       - cot
-      - multiturn
+      - multi-turn
   cot-json:
     datasets:
       - meld
