@@ -1,0 +1,17 @@
+model:
+  name: qwen_omni
+
+  pretrained: <model_identifier>
+
+  device: cuda
+
+  quantization:
+    enabled: true
+    type: nf4
+    compute_dtype: bfloat16
+
+  generation:
+    temperature: 0.0
+    top_p: 1.0
+    top_k: null
+    max_new_tokens: 128

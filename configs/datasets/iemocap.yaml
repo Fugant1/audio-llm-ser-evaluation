@@ -1,0 +1,23 @@
+dataset:
+  name: iemocap
+
+  paths:
+    root: data/iemocap
+
+  splits:
+    train: train
+    validation: validation
+    test: test
+
+  labels:
+    - angry
+    - excited
+    - frustration
+    - fear
+    - happy
+    - neutral
+    - sad
+    - surprise
+
+  test:
+    max_samples: null

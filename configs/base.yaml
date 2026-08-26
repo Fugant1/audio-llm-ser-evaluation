@@ -1,0 +1,24 @@
+project:
+  name: aaft
+  seed: 42
+
+evaluation:
+  metrics:
+    - accuracy
+    - macro_f1
+    - weighted_f1
+    - per_class_f1
+
+  confusion_matrix: true
+  error_analysis: true
+  statistical_tests: true
+
+tracking:
+  save_predictions: true
+  save_raw_outputs: true
+  save_metadata: true
+
+generation:
+  temperature: 0.0
+  top_p: 1.0
+  top_k: null

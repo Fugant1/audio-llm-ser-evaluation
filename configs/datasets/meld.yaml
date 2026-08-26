@@ -1,0 +1,22 @@
+dataset:
+  name: meld
+
+  paths:
+    root: data/meld
+
+  splits:
+    train: train
+    validation: validation
+    test: test
+
+  labels:
+    - anger
+    - disgust
+    - fear
+    - joy
+    - neutral
+    - sadness
+    - surprise
+
+  test:
+    max_samples: null

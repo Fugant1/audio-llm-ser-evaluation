@@ -1,0 +1,24 @@
+prompt:
+  strategy: multi_turn
+
+  turns:
+
+    - id: 1
+      role: user
+      instruction: |
+        Analyze the emotional characteristics of the audio.
+
+    - id: 2
+      role: user
+      instruction: |
+        Review your previous analysis and reconsider the emotion.
+        Then provide the final classification.
+
+  output:
+    format: label
+
+  ablation:
+    enabled: true
+    turn_counts:
+      - 1
+      - 2

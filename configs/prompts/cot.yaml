@@ -1,0 +1,12 @@
+prompt:
+  strategy: cot
+
+  system: |
+    Analyze the emotional content of the audio.
+
+  instruction: |
+    First reason about the emotion expressed in the audio.
+    Then provide the final emotion classification.
+
+  output:
+    format: free_text

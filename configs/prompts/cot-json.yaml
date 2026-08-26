@@ -1,0 +1,25 @@
+prompt:
+  strategy: cot_json
+
+  system: |
+    Analyze the emotional content of the audio.
+
+  instruction: |
+    Reason about the emotion expressed in the audio and provide
+    your final classification.
+
+  output:
+    format: json
+
+    schema:
+      reasoning: string
+      emotion: label
+
+    allowed_labels:
+      - anger
+      - disgust
+      - fear
+      - joy
+      - neutral
+      - sadness
+      - surprise

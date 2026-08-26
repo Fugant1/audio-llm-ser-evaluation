@@ -1,0 +1,19 @@
+prompt:
+  strategy: zero_shot
+
+  system: |
+    Classify the emotion expressed in the audio.
+
+  instruction: |
+    Return only one emotion label.
+
+  output:
+    format: label
+    allowed_labels:
+      - anger
+      - disgust
+      - fear
+      - joy
+      - neutral
+      - sadness
+      - surprise

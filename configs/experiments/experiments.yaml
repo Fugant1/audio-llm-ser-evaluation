@@ -1,0 +1,58 @@
+matrix:
+
+  main:
+    datasets:
+      - meld
+      - iemocap
+
+    models:
+      - whisper_mistral
+      - audio_flamingo
+      - qwen_omni
+
+    prompts:
+      - zero-shot
+      - cot
+      - multiturn
+  cot-json:
+    datasets:
+      - meld
+      - iemocap
+
+    models:
+      - whisper_mistral
+      - audio_flamingo
+      - qwen_omni
+
+    prompts:
+      - cot-json
+
+  quantization:
+    datasets:
+      - meld
+      - iemocap
+
+    models:
+      - audio_flamingo
+
+    prompts:
+      - zero-shot
+      - cot
+      - multi-turn
+
+    quantization:
+      - nf4
+      - bf16
+
+  fine-tuning:
+    datasets:
+      - meld
+
+    models:
+      - audio_flamingo
+
+    prompts:
+      - zero-shot
+
+    training:
+      enabled: true
