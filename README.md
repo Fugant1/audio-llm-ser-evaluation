@@ -1,5 +1,4 @@
-# AAFT
-Affective Audio Fine Tuning
+# audio-llm-ser-evaluation
 
 **Project Summary**
 - **Goal:** Fine-tune an audio+text emotion model using MELD and IEMOCAP, applying LoRA (low-rank adaptation) for lightweight parameter-efficient fine-tuning.
