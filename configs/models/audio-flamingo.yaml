@@ -1,7 +1,6 @@
 model:
   name: af3
-
-  pretrained: <model_identifier>
+  pretrained: nvidia/AudioFlamingo-3
 
   device: cuda
 

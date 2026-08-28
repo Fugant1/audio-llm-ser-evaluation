@@ -9,11 +9,4 @@ prompt:
 
   output:
     format: label
-    allowed_labels:
-      - anger
-      - disgust
-      - fear
-      - joy
-      - neutral
-      - sadness
-      - surprise
+    allowed_labels: null  # Inherits dynamically from dataset.labels if null

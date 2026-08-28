@@ -9,6 +9,10 @@ dataset:
     validation: validation
     test: test
 
+  audio:
+    sampling_rate: 16000
+    channels: 1
+
   labels:
     - angry
     - excited

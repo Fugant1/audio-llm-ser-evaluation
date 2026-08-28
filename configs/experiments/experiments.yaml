@@ -56,3 +56,9 @@ matrix:
 
     training:
       enabled: true
+      method: lora
+      lora_r: 16
+      lora_alpha: 32
+      learning_rate: 0.0002
+      batch_size: 4
+      epochs: 5

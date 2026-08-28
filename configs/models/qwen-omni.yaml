@@ -1,7 +1,6 @@
 model:
   name: qwen_omni
-
-  pretrained: <model_identifier>
+  pretrained: Qwen/Qwen2-Audio-7B-Instruct
 
   device: cuda
 

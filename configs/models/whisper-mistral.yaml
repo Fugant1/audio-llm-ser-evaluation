@@ -1,14 +1,22 @@
 model:
   name: wm7
-
-  pretrained: <model_identifier>
+  pretrained_mistral: mistralai/Mistral-7B-Instruct-v0.3
+  pretrained_whisper: large-v2
 
   device: cuda
 
-  quantization:
+  quantization_mistral:
     enabled: true
     type: nf4
     compute_dtype: bfloat16
+
+  config_mistral:
+    attn_implementation: sdpa
+    do_sample: false
+    device_map: auto
+
+  config_whisper:
+    compute_dtype: float16
 
   generation:
     temperature: 0.0

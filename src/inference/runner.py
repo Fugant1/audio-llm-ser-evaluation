@@ -8,7 +8,7 @@ from src.utils.config_loader import ExperimentConfigFactory
     
 def run_single_experiment(cfg: dict) -> None:
         run_id = cfg["experiment"]["run_id"]
-        output_dir = Path("results") / cfg["dataset"]["name"] / run_id
+        output_dir = Path("results") / cfg["dataset"]["name"] / run_id / f"seed_{str(cfg['project']['seed'])}"
         output_dir.mkdir(parents=True, exist_ok=True)
         logger = get_logger(run_id, Path(output_dir) / "logs")
     
@@ -17,7 +17,7 @@ def run_single_experiment(cfg: dict) -> None:
         with open(output_dir / "resolved_config.json", "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
         logger.info(f"Resolved configuration saved to {output_dir / 'resolved_config.json'}")
-    
+        logger.info(cfg["model"])
         # TODO: Pass cfg to your model inference pipeline and evaluation tracking
         # e.g., model = build_model(cfg["model"])
         #       eval_dataset = build_dataset(cfg["dataset"])
@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser(description="AAFT Experiment Matrix Runner")
     parser.add_argument("--group", type=str, default=None, help="Experiment group (e.g. 'main', 'quantization')")
     parser.add_argument("--filter-dataset", type=str, default=None, help="Filter by specific dataset")
-    parser.add_argument("--run-id", type=str, default=None, help="Run a single specific experiment by its run_id") # <--- Novo argumento
+    parser.add_argument("--run-id", type=str, default=None, help="Run a single specific experiment by its run_id") 
     parser.add_argument("--dry-run", action="store_true", help="Print experiment runs without executing")
     args = parser.parse_args()
 

@@ -48,3 +48,61 @@ def test_missing_config_raises():
     factory = ExperimentConfigFactory()
     with pytest.raises(FileNotFoundError):
         factory.load_dataset("non_existent_dataset_123")
+
+
+def test_invalid_group_raises():
+    factory = ExperimentConfigFactory()
+    with pytest.raises(ValueError, match="Experiment group 'invalid_group_xyz' not found"):
+        list(factory.generate_experiments(group="invalid_group_xyz"))
+
+
+def test_dynamic_label_propagation():
+    factory = ExperimentConfigFactory()
+    # Check IEMOCAP with zero-shot and cot-json prompts
+    iemocap_exps = [e for e in factory.generate_experiments(group="main") if e["dataset"]["name"] == "iemocap"]
+    assert len(iemocap_exps) > 0
+    for exp in iemocap_exps:
+        if exp["prompt"]["strategy"] in ("zero_shot", "cot_json"):
+            assert exp["prompt"]["output"]["allowed_labels"] == exp["dataset"]["labels"]
+            assert "angry" in exp["prompt"]["output"]["allowed_labels"]
+            assert "frustration" in exp["prompt"]["output"]["allowed_labels"]
+
+    # Check MELD
+    meld_exps = [e for e in factory.generate_experiments(group="main") if e["dataset"]["name"] == "meld"]
+    assert len(meld_exps) > 0
+    for exp in meld_exps:
+        if exp["prompt"]["strategy"] in ("zero_shot", "cot_json"):
+            assert exp["prompt"]["output"]["allowed_labels"] == exp["dataset"]["labels"]
+            assert "anger" in exp["prompt"]["output"]["allowed_labels"]
+            assert "joy" in exp["prompt"]["output"]["allowed_labels"]
+
+
+def test_validate_matrix():
+    factory = ExperimentConfigFactory()
+    report = factory.validate_matrix()
+    assert report["total_experiments"] == 37  # 18 main + 6 cot-json + 12 quantization + 1 fine-tuning
+    assert "main" in report["groups"]
+    assert "cot-json" in report["groups"]
+    assert "quantization" in report["groups"]
+    assert "fine-tuning" in report["groups"]
+
+
+def test_list_groups_and_count():
+    factory = ExperimentConfigFactory()
+    groups = factory.list_groups()
+    assert "main" in groups
+    assert "quantization" in groups
+    assert factory.get_experiment_count("main") == 18
+    assert factory.get_experiment_count() == 37
+
+
+def test_caching():
+    factory = ExperimentConfigFactory()
+    ds1 = factory.load_dataset("meld")
+    ds2 = factory.load_dataset("meld")
+    assert ds1 == ds2
+    # Verify cached without mutation leakage
+    ds1["dataset"]["name"] = "mutated"
+    ds3 = factory.load_dataset("meld")
+    assert ds3["dataset"]["name"] == "meld"
+

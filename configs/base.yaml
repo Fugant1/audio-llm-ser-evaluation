@@ -1,6 +1,7 @@
 project:
-  name: aaft
+  name: alse
   seed: 42
+
 
 evaluation:
   metrics:
@@ -22,3 +23,4 @@ generation:
   temperature: 0.0
   top_p: 1.0
   top_k: null
+  max_new_tokens: 128
