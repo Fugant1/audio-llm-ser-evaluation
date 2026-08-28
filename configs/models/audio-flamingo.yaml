@@ -1,5 +1,5 @@
 model:
-  name: af3
+  name: audio_flamingo
   pretrained: nvidia/AudioFlamingo-3
 
   device: cuda

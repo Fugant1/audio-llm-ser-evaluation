@@ -1,5 +1,5 @@
 model:
-  name: wm7
+  name: whisper_mistral
   pretrained_mistral: mistralai/Mistral-7B-Instruct-v0.3
   pretrained_whisper: large-v2
 
