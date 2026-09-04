@@ -9,6 +9,11 @@ model:
     type: nf4
     compute_dtype: bfloat16
 
+  config:
+    attn_implementation: sdpa
+    do_sample: false
+    device_map: auto
+
   generation:
     temperature: 0.0
     top_p: 1.0
