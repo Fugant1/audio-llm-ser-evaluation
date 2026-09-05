@@ -8,7 +8,7 @@ from src.models.base import BaseModel, GenerationResult
 class WhisperMistral(BaseModel):
     """
     Cascaded Audio-LLM pipeline:
-    1. Audio Transcription via WhisperX (CTranslate2 / PyTorch).
+    1. Audio Transcription via Hugging Face Transformers Whisper pipeline.
     2. Affective Reasoning & Emotion Classification via Mistral using vLLM engine.
     """
 
@@ -28,13 +28,14 @@ class WhisperMistral(BaseModel):
         return q_type or None
 
     def load(self):
-        # 1. Load WhisperX for speech transcription
+        # 1. Load Hugging Face Transformers Whisper for speech transcription
         try:
-            import whisperx
+            import torch
+            from transformers import pipeline
         except ImportError as e:
             raise ImportError(
-                "WhisperX is required for WhisperMistral transcription. "
-                "Install it via 'pip install whisperx'."
+                "Transformers and PyTorch are required for WhisperMistral transcription. "
+                "Install them via 'pip install transformers torch'."
             ) from e
 
         whisper_model_name = self.model_config.get("pretrained_whisper", "large-v2")
@@ -43,10 +44,25 @@ class WhisperMistral(BaseModel):
             self.model_config.get("config_whisper", {}).get("compute_dtype", "float16")
         )
 
-        self.whisper = whisperx.load_model(
-            whisper_model_name,
-            whisper_device,
-            compute_type=whisper_compute_dtype,
+        if "/" not in whisper_model_name:
+            if whisper_model_name.startswith("whisper-"):
+                whisper_model_id = f"openai/{whisper_model_name}"
+            else:
+                whisper_model_id = f"openai/whisper-{whisper_model_name}"
+        else:
+            whisper_model_id = whisper_model_name
+
+        torch_dtype = torch.float16
+        if str(whisper_compute_dtype).lower() in ("bfloat16", "bf16"):
+            torch_dtype = torch.bfloat16
+        elif str(whisper_compute_dtype).lower() in ("float32", "fp32"):
+            torch_dtype = torch.float32
+
+        self.whisper = pipeline(
+            "automatic-speech-recognition",
+            model=whisper_model_id,
+            torch_dtype=torch_dtype,
+            device=whisper_device,
         )
 
         # 2. Load Mistral via vLLM
@@ -63,7 +79,7 @@ class WhisperMistral(BaseModel):
         )
         quant_type = self._resolve_quantization()
 
-        # In a cascaded pipeline, reserve VRAM for WhisperX by capping vLLM allocation
+        # In a cascaded pipeline, reserve VRAM for Whisper by capping vLLM allocation
         gpu_util = float(self.model_config.get("gpu_memory_utilization", 0.60))
         max_model_len = int(self.model_config.get("max_model_len", 4096))
         enforce_eager = (quant_type == "bitsandbytes") or self.model_config.get(
@@ -110,29 +126,33 @@ class WhisperMistral(BaseModel):
         if self.whisper is None or self.llm is None:
             raise RuntimeError("Model is not loaded. Call model.load() before batch_generate().")
 
-        import whisperx
-
         t0 = time.perf_counter()
         normalized_prompts = self._normalize_prompts(prompts, len(audio_paths))
 
-        # Step 1: Transcribe audio inputs via WhisperX
+        # Step 1: Transcribe audio inputs via Transformers Whisper pipeline
         t_whisper_start = time.perf_counter()
         transcripts: List[str] = []
         for i in range(0, len(audio_paths), batch_size):
             chunk_paths = audio_paths[i : i + batch_size]
-            audio_arrays = [whisperx.load_audio(p) for p in chunk_paths]
-            for audio_arr in audio_arrays:
-                asr_result = self.whisper.transcribe(audio_arr, batch_size=batch_size)
+            if callable(self.whisper):
+                asr_result = self.whisper(chunk_paths, batch_size=batch_size)
                 if isinstance(asr_result, dict):
-                    segments = asr_result.get("segments", [])
-                    text = " ".join(seg.get("text", "").strip() for seg in segments).strip()
-                    if not text and "text" in asr_result:
-                        text = str(asr_result["text"]).strip()
-                elif isinstance(asr_result, list):
-                    text = " ".join(item.get("text", "").strip() for item in asr_result).strip()
-                else:
-                    text = str(asr_result).strip()
-                transcripts.append(text)
+                    asr_result = [asr_result]
+                for item in asr_result:
+                    if isinstance(item, dict):
+                        transcripts.append(str(item.get("text", "")).strip())
+                    else:
+                        transcripts.append(str(item).strip())
+            elif hasattr(self.whisper, "transcribe"):
+                for p in chunk_paths:
+                    res = self.whisper.transcribe(p)
+                    if isinstance(res, dict):
+                        text = res.get("text", "")
+                    else:
+                        text = str(res)
+                    transcripts.append(text.strip())
+            else:
+                raise RuntimeError("Whisper model is neither callable nor does it provide a transcribe method.")
         whisper_time_ms = (time.perf_counter() - t_whisper_start) * 1000.0
 
         # Step 2: Format prompt with transcript

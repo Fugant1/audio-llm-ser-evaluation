@@ -93,9 +93,8 @@ class TestModelsVLLM(unittest.TestCase):
             "generation": {"temperature": 0.0, "max_new_tokens": 64},
         })
         
-        # Mock Whisper and vLLM LLM
-        mock_whisper = MagicMock()
-        mock_whisper.transcribe.return_value = {"text": "I feel excited!"}
+        # Mock Whisper pipeline and vLLM LLM
+        mock_whisper = MagicMock(return_value=[{"text": "I feel excited!"}])
         wm.whisper = mock_whisper
 
         mock_vllm_output = MagicMock()
@@ -104,14 +103,34 @@ class TestModelsVLLM(unittest.TestCase):
         mock_llm.generate.return_value = [mock_vllm_output]
         wm.llm = mock_llm
 
-        with patch("whisperx.load_audio", return_value=[0.0, 0.1]):
-            result = wm.batch_generate(["sample.wav"], "Predict emotion")
+        result = wm.batch_generate(["sample.wav"], "Predict emotion")
 
         self.assertIsInstance(result, GenerationResult)
         self.assertEqual(result.predictions, ["excited"])
         self.assertEqual(result.metadata["engine"], "vllm")
         self.assertEqual(result.metadata["transcripts"], ["I feel excited!"])
         self.assertEqual(result.metadata["generated_tokens"], 2)
+
+    def test_whisper_mistral_transcribe_method_fallback(self):
+        wm = build_model({
+            "name": "whisper_mistral",
+            "generation": {"temperature": 0.0, "max_new_tokens": 64},
+        })
+
+        class LegacyTranscriber:
+            def transcribe(self, path):
+                return {"text": "Legacy transcription result"}
+
+        wm.whisper = LegacyTranscriber()
+        mock_vllm_output = MagicMock()
+        mock_vllm_output.outputs = [MagicMock(text="calm", token_ids=[3])]
+        mock_llm = MagicMock()
+        mock_llm.generate.return_value = [mock_vllm_output]
+        wm.llm = mock_llm
+
+        result = wm.batch_generate(["sample.wav"], "Predict emotion")
+        self.assertEqual(result.predictions, ["calm"])
+        self.assertEqual(result.metadata["transcripts"], ["Legacy transcription result"])
 
     def test_qwen_omni_mocked_batch_generate(self):
         qwen = build_model({
